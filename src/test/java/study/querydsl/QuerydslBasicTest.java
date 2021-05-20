@@ -591,4 +591,64 @@ public class QuerydslBasicTest {
     private Predicate allEq(String usernameParam, Integer ageParam) {
         return usernameEq(usernameParam).and(ageEq(ageParam));
     }
+
+    @Test
+    public void 벌크업데이트() throws Exception{
+        queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        em.flush();
+        em.clear();
+
+        List<Member> fetch = queryFactory.selectFrom(member)
+                .fetch();
+
+        for (Member fetch1 : fetch) {
+            System.out.println("fetch1 = " + fetch1);
+        }
+    }
+
+    @Test
+    public void 벌크더하기() throws Exception{
+        queryFactory
+                .update(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+    }
+
+    @Test
+    public void 벌크삭제() throws Exception{
+        queryFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
+    }
+    @Test
+    public void sqlFunction() throws Exception{
+        List<String> result = queryFactory
+                .select(
+                        Expressions.stringTemplate("function('replace',{0},{1},{2})"
+                                , member.username, "member", "M"))
+                .from(member)
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+    @Test
+    public void sqlFunction2() throws Exception{
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                .where(member.username.eq(member.username.lower()))
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
 }
